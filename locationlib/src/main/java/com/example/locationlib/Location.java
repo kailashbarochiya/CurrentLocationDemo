@@ -1,14 +1,14 @@
 package com.example.locationlib;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -17,10 +17,6 @@ import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-
-import java.text.DateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 /**
  * Created by kailash on 12/12/2017.
@@ -34,11 +30,10 @@ public class Location extends AppCompatActivity implements GoogleApiClient.Conne
     private LocationRequest mLocationRequest;
     private static GoogleApiClient mGoogleApiClient;
     private static android.location.Location mCurrentLocation;
-    private Activity context;
+    private Activity activity;
 
     public Location(Activity applicationContext) {
-
-        context=applicationContext;
+        activity = applicationContext;
     }
 
 
@@ -46,19 +41,29 @@ public class Location extends AppCompatActivity implements GoogleApiClient.Conne
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
-        getLocation();
-
-
     }
 
-    public void getLocation() {
+    public void checkPermission() {
 
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            checkLocationPermission();
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+        {
+
+            if (checkLocationPermission())
+            {
+                createLocationRequest();
+                mGoogleApiClient = new GoogleApiClient.Builder(activity)
+                        .addApi(LocationServices.API)
+                        .addConnectionCallbacks(this)
+                        .addOnConnectionFailedListener(this).build();
+                mGoogleApiClient.connect();
+            }
+
         } else {
             createLocationRequest();
-            mGoogleApiClient = new GoogleApiClient.Builder(Location.this).addApi(LocationServices.API).addConnectionCallbacks(this).addOnConnectionFailedListener(this).build();
+            mGoogleApiClient = new GoogleApiClient.Builder(activity)
+                    .addApi(LocationServices.API)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this).build();
             mGoogleApiClient.connect();
         }
 
@@ -66,53 +71,36 @@ public class Location extends AppCompatActivity implements GoogleApiClient.Conne
     }
 
 
-    public boolean checkLocationPermission() {
-        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-            //Prompt the user once explanation has been shown
-            ActivityCompat.requestPermissions(context, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_LOCATION);
-
-            return false;
-        } else {
+    public boolean  checkLocationPermission() {
+        if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             return true;
+        } else {
+            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_LOCATION);
+            return false;
         }
     }
 
 
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_LOCATION: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
-                    // permission was granted. Do the
-                    // contacts-related task you need to do.
-                    if (ContextCompat.checkSelfPermission(Location.this,
-                            Manifest.permission.ACCESS_FINE_LOCATION)
-                            == PackageManager.PERMISSION_GRANTED) {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
-                        if (mGoogleApiClient == null) {
-                            createLocationRequest();
-                            mGoogleApiClient = new GoogleApiClient.Builder(Location.this).addApi(LocationServices.API).addConnectionCallbacks(this).addOnConnectionFailedListener(this).build();
-                            mGoogleApiClient.connect();
-                        }
-
-
+                    if (mGoogleApiClient == null) {
+                        createLocationRequest();
+                        mGoogleApiClient = new GoogleApiClient.Builder(activity).addApi(LocationServices.API).addConnectionCallbacks(this).addOnConnectionFailedListener(this).build();
+                        mGoogleApiClient.connect();
                     }
 
                 } else {
 
-                    // Permission denied, Disable the functionality that depends on this permission.
                     Toast.makeText(Location.this, "permission denied", Toast.LENGTH_LONG).show();
                 }
                 return;
             }
 
-            // other 'case' lines to check for other permissions this app might request.
-            // You can add here other case statements according to your requirement.
         }
     }
 
@@ -134,11 +122,15 @@ public class Location extends AppCompatActivity implements GoogleApiClient.Conne
     }
 
     protected void startLocationUpdates() {
-        PendingResult<Status> pendingResult = LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, Location.this);
 
-        android.location.Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+
+        @SuppressLint("MissingPermission") PendingResult<Status> pendingResult = LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, Location.this);
+
+        @SuppressLint("MissingPermission") android.location.Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+
 
         if (mLastLocation != null) {
+            Log.d("CurrentLatlong==", "Lat:" + mLastLocation.getLatitude() + " Lng:" + mLastLocation.getLongitude());
             setmCurrentLocation(mLastLocation);
         }
 
@@ -157,18 +149,10 @@ public class Location extends AppCompatActivity implements GoogleApiClient.Conne
     public void onLocationChanged(android.location.Location location) {
 
         mCurrentLocation = location;
-        DateFormat.getTimeInstance().format(new Date());
-        updateUI();
-    }
-
-    private void updateUI() {
 
         if (null != mCurrentLocation) {
-            Double lat = mCurrentLocation.getLatitude();
-            Double lng = mCurrentLocation.getLongitude();
             setmCurrentLocation(mCurrentLocation);
         }
-
     }
 
 
@@ -217,4 +201,6 @@ public class Location extends AppCompatActivity implements GoogleApiClient.Conne
 
 
     }
+
+
 }
