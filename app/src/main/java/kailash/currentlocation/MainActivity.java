@@ -7,9 +7,9 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.locationlib.Location;
+import com.example.locationlib.CurrentLocation;
 
-import static com.example.locationlib.Location.getmCurrentLocation;
+import static com.example.locationlib.CurrentLocation.getmCurrentLocation;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Location location=new Location(MainActivity.this);
+        CurrentLocation location=new CurrentLocation(MainActivity.this);
         location.checkPermission();
 
 
@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 else
                 {
-                    Toast.makeText(MainActivity.this,"Location not found",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this,"CurrentLocation not found",Toast.LENGTH_SHORT).show();
                 }
 
             }

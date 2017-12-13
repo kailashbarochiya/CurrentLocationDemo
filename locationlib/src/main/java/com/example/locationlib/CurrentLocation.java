@@ -22,7 +22,7 @@ import com.google.android.gms.location.LocationServices;
  * Created by kailash on 12/12/2017.
  */
 
-public class Location extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
+public class CurrentLocation extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
 
     private static final long INTERVAL = 1000 * 10;
     private static final long FASTEST_INTERVAL = 1000 * 5;
@@ -32,7 +32,7 @@ public class Location extends AppCompatActivity implements GoogleApiClient.Conne
     private static android.location.Location mCurrentLocation;
     private Activity activity;
 
-    public Location(Activity applicationContext) {
+    public CurrentLocation(Activity applicationContext) {
         activity = applicationContext;
     }
 
@@ -96,7 +96,7 @@ public class Location extends AppCompatActivity implements GoogleApiClient.Conne
 
                 } else {
 
-                    Toast.makeText(Location.this, "permission denied", Toast.LENGTH_LONG).show();
+                    Toast.makeText(CurrentLocation.this, "permission denied", Toast.LENGTH_LONG).show();
                 }
                 return;
             }
@@ -124,7 +124,7 @@ public class Location extends AppCompatActivity implements GoogleApiClient.Conne
     protected void startLocationUpdates() {
 
 
-        @SuppressLint("MissingPermission") PendingResult<Status> pendingResult = LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, Location.this);
+        @SuppressLint("MissingPermission") PendingResult<Status> pendingResult = LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, CurrentLocation.this);
 
         @SuppressLint("MissingPermission") android.location.Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
 
@@ -157,7 +157,7 @@ public class Location extends AppCompatActivity implements GoogleApiClient.Conne
 
 
     protected void stopLocationUpdates() {
-        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, (com.google.android.gms.location.LocationListener) Location.this);
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, (com.google.android.gms.location.LocationListener) CurrentLocation.this);
     }
 
 
